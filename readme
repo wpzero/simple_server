@@ -1,0 +1,5 @@
+simplehttpd
+参考 tinyhttpd　https://sourceforge.net/projects/tinyhttpd/ 实现
+实现 GET POST PUT DELETE
+支持IPV4 和　IPV6
+例子用ruby脚本实现

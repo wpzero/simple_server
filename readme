@@ -1,5 +1,7 @@
 simplehttpd
 参考 tinyhttpd　https://sourceforge.net/projects/tinyhttpd/ 实现
-实现 GET POST PUT DELETE
+实现 GET POST PUT DELETE (CGI实现)
 支持IPV4 和　IPV6
 例子用ruby脚本实现
+
+没有完成，会慢慢扩充功能。

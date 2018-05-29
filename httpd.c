@@ -48,6 +48,9 @@ int get_line(int sock, char *buf, int size);
 void sigchld_handler(int s);
 u_short port;
 
+/* http 是通过\n 或者 CRLF \r\n来分割 */
+/* socket 一般不检测EOF,　只有对方socket关闭, 才有eof */
+/* 所以一般都是在协议中规定长度，例如 http CONTENT-LENGTH */
 int get_line(int sock, char *buf, int size) {
   int i = 0;
   char c = '\0';
@@ -73,6 +76,7 @@ int get_line(int sock, char *buf, int size) {
   return i;
 }
 
+/* 500 */
 void inner_error_req(int clientfd) {
   char buf[1024];
 
@@ -103,7 +107,7 @@ void bad_req(int clientfd) {
   send(clientfd, buf, sizeof(buf), 0);
 }
 
-
+/* 404 */
 void notfound_req(int clientfd) {
   char buf[1024];
 
@@ -124,6 +128,7 @@ void notfound_req(int clientfd) {
   send(clientfd, buf, strlen(buf), 0);
 }
 
+/* not support method */
 void unimp_method_req(int clientfd) {
   char buf[1024];
   /* 501 method没有实现 */
@@ -144,6 +149,7 @@ void unimp_method_req(int clientfd) {
   send(clientfd, buf, strlen(buf), 0);
 }
 
+/* 执行CGI */
 void execcgi(int clientfd, const char *path, const char *method, char *querystr) {
   char buf[1024];
   int cgi_output[2];
@@ -202,7 +208,8 @@ void execcgi(int clientfd, const char *path, const char *method, char *querystr)
     close(cgi_output[0]);
     close(cgi_input[1]);
 
-    /* 通过环境变量来和CGI来传递　method query content_length */
+    /* 通过环境变量来和CGI来传递　REQUEST_METHOD QUERY_STRING CONTENT_LENGTH */
+    /* 这个CGI规定的方式 */
     sprintf(meth_env, "REQUEST_METHOD=%s", method);
     putenv(meth_env);
     if (strcasecmp(method, "GET") == 0) {
@@ -220,7 +227,8 @@ void execcgi(int clientfd, const char *path, const char *method, char *querystr)
   } else {    /* 父进程 */
     close(cgi_output[1]);
     close(cgi_input[0]);
-    /* 发送body */
+    /* 发送body通过管道 */
+    /* 通过Content-Length来取body */
     if(strcasecmp(method, "POST") == 0 || strcasecmp(method, "PUT") == 0)
       for (i = 0; i < content_length; i++) {
         recv(clientfd, &c, 1, 0);
